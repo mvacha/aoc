@@ -2,13 +2,14 @@
 
 //PrintResults(new Day01(), "./Day01/input.txt");
 //PrintResults(new Day02(), "./Day02/input.txt");
-//PrintResults(new Day03(), "./Day03/input.txt");
+PrintResults(new Day03(), "./Day03/input.txt");
 //PrintResults(new Day04(), "./Day04/input.txt");
 //PrintResults(new Day05(), "./Day05/input.txt");
 //PrintResults(new Day06(), "./Day06/input.txt");
 //PrintResults(new Day07(), "./Day07/input.txt");
 //PrintResults(new Day08(), "./Day08/input.txt");
-PrintResults(new Day09(), "./Day09/input.txt");
+//PrintResults(new Day09(), "./Day09/input.txt");
+//PrintResults(new Day10(), "./Day10/input.txt");
 
 
 
@@ -25,3 +26,4 @@ public interface IDay
     object SolveFirst(string file);
     object SolveSecond(string file);
 }
+
