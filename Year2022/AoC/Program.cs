@@ -13,4 +13,4 @@ if (DateTime.Today is { Month: 12, Day: <= 25 })
 //PrintResults(new Day08(), "./Day08/input.txt");
 //PrintResults(new Day09(), "./Day09/input.txt");
 //PrintResults(new Day10(), "./Day10/input.txt");
-PrintResults(new Day11(), "./Day11/input.ref.txt");
+PrintResults(new Day11(), "./Day11/input.txt");
