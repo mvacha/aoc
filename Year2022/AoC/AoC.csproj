@@ -12,4 +12,8 @@
     <None Update="$(SolutionRoot)/**/*.txt" CopyToOutputDirectory="PreserveNewest"></None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="SuperLinq" Version="4.5.0" />
+  </ItemGroup>
+
 </Project>
