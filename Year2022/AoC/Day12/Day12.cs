@@ -1,47 +1,37 @@
-using SuperLinq;
+using static SuperLinq.SuperEnumerable;
 
 public class Day12 : IDay
 {
     public int DayNumber => 12;
 
-    public record Coord(int x, int y);
-    public record Map(char[][] Heights, Coord Start, Coord End)
+    private static (int X, int Y)[] Directions = new[] { (-1, 0), (1, 0), (0, 1), (0, -1) };
+    private const char LOWEST = 'a';
+    private const char HIGHEST = 'z';
+
+    public record Coord(int X, int Y);
+    public record Map(Dictionary<Coord, char> Heights, Coord Start, Coord End)
     {
-        public IEnumerable<Coord> GetNeighbors(Coord point) => new[] { (-1, 0), (1, 0), (0, 1), (0, -1) }
-                .Select(dir => new Coord(point.x + dir.Item1, point.y + dir.Item2))
-                .Where(p => 0 <= p.x && p.x < Heights[0].Length && //inside map x
-                            0 <= p.y && p.y < Heights.Length && //inside map y
-                            Heights[point.y][point.x] - Heights[p.y][p.x] <= 1); //max 1 step up
+        public IEnumerable<Coord> GetNeighbors(Coord start) => Directions
+                .Select(d => new Coord(start.X + d.X, start.Y + d.Y))
+                .Where(Heights.ContainsKey);
 
         public IEnumerable<Coord> GetLowestPoints()
-        {
-            for (int i = 0; i < Heights[0].Length; i++)
-                for (int j = 0; j < Heights.Length; j++)
-                    if (Heights[j][i] == 'a')
-                        yield return new (i, j);
-        }
+            => Heights.Where(p => p.Value == LOWEST).Select(p => p.Key);
     }
 
-    public Map ParseMap(IEnumerable<string> lines)
+    public Map ParseMap(IList<string> lines)
     {
-        Coord start = default!;
-        Coord end = default!;
+        var heights = new Dictionary<Coord, char>();
 
-        var heights = lines.Select((l,row) =>
-        {
-            var startX = l.IndexOf('S');
-            if (startX != -1)
-                start = new(startX, row);
+        for (int y = 0; y < lines.Count; y++)
+            for (int x = 0; x < lines[y].Length; x++)
+                heights.Add(new(x, y), lines[y][x]);
 
-            var endX = l.IndexOf('E');
-            if (endX != -1)
-                end = new(endX, row);
-            
-            return l.ToCharArray();
-        }).ToArray();
+        var start = heights.First(p => p.Value == 'S').Key;
+        var end = heights.First(p => p.Value == 'E').Key;
 
-        heights[start.y][start.x] = 'a';
-        heights[end.y][end.x] = 'z';
+        heights[start] = LOWEST;
+        heights[end] = HIGHEST;
 
         return new(heights, start, end);
     }
@@ -49,31 +39,34 @@ public class Day12 : IDay
     public object SolveFirst(string inputFile)
     {
         var map = ParseMap(File.ReadAllLines(inputFile));
-        var cost = SuperEnumerable.GetShortestPathCost<Coord, int>(
-                start: map.End,
-                end: map.Start,
-                getNeighbors: (point, cost) => map.GetNeighbors(point).Select(p => (p, cost + 1)));
 
-        return cost;
+        var neighborsUp = (Coord start)
+            => map.GetNeighbors(start).Where(p => map.Heights[p] - map.Heights[start] <= 1);
+
+        var path = GetShortestPath<Coord, int>(
+                start: map.Start, 
+                end: map.End,
+                getNeighbors: (p, c) => neighborsUp(p).Select(p => (p, c + 1)));
+
+        return path.Last().cost;
     }
 
     public object SolveSecond(string inputFile)
     {
         var map = ParseMap(File.ReadAllLines(inputFile));
 
-        var paths = SuperEnumerable.GetShortestPaths<Coord, int>(
-                start: map.End,
-                getNeighbors: (point, cost) => map.GetNeighbors(point).Select(p => (p, cost + 1)));
+        var neighborsDown = (Coord start)
+            => map.GetNeighbors(start).Where(p => map.Heights[start] - map.Heights[p] <= 1); //different compared to neighborsUp
 
-        var lowest = map.GetLowestPoints().ToList();
-        var minCost = lowest.Where(paths.ContainsKey).Select(start => paths[start].cost).Min();
+        var paths = GetShortestPaths<Coord, int>(
+            start: map.End,
+            getNeighbors: (p, c) => neighborsDown(p).Select(p => (p, c + 1)));
+
+        var minCost = map.GetLowestPoints()
+            .Where(paths.ContainsKey)
+            .Select(start => paths[start].cost)
+            .Min();
 
         return minCost;
     }
 }
-
-public static class LinqExtensions
-{
-    public static IEnumerable<T> Select<T>(this T[][] values) =>
-        values.SelectMany(v => v.AsEnumerable());
-} 
